@@ -20,7 +20,7 @@
     "strict": false,
     "noImplicitAny": true,
     // :::: More spec :::: //
-    "lib": ["es5", "es6", "ES2018"],
+    "lib": ["es5", "es6", "ES2018", "dom"],
     // :::: Sorcemap :::: //
     "sourceMap": false,
     // :::: Etc :::: //

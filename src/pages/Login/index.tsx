@@ -1,69 +1,71 @@
-import { LockOutlined, UserOutlined } from '@ant-design/icons';
-import { Checkbox, Input } from 'antd';
+import { useLogin } from "hooks";
+import { ILogin } from "interfaces/ILogin";
+import { useCallback, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { LoginService } from "services/LoginService";
+import { BoxImg, BoxLogin, ButtonS, Container, DivButtons, InputS } from "./styles";
+import { MdPassword, MdLogin } from "react-icons/md";
+import { FaRegUser } from "react-icons/fa";
+import { toast } from "react-hot-toast";
 
-import FormItemUtil from '../../components/util/FormItem';
-import InputUtil from '../../components/util/Input';
-import { FormButton, FormContent, FormItem, FormS } from './styles';
+const Login = () => {
+  const [dataLogin, setDataLogin] = useState<ILogin>(null);
+  const navigate = useNavigate();
+  const { handleSignIn } = useLogin();
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
-type LoginProps = {
-  login: string;
-  password: string;
-  onSubmit?: () => void;
-};
+  const handleLogin = useCallback(async () => {
+    window.event.preventDefault();
+    setIsLoading(true)
+    
+    if(dataLogin === null) {
+      setIsLoading(false)
+      return;
+    }
+    const res = await LoginService.login(dataLogin);
 
-const Login: React.FC = () => {
-  const onFinish = (values: LoginProps) => {
-    console.log('Received values of form: ', values);
-  };
+    if (!res.err) {
+      setTimeout(() => {
+        setIsLoading(false);
+        handleSignIn(res.data)
+        toast.success(res.msg, {duration: 4000});
+        navigate('/');
+      }, 2000);
+    }
+    if (res.err) {
+      setIsLoading(false)
+      toast.error(res.msg, {duration: 4000})
+    }
+  }, [dataLogin, handleSignIn, navigate]);
 
   return (
-    <FormS
-      name="normal_login"
-      initialValues={{ remember: true }}
-      onFinish={onFinish}
-    >
-      <FormContent>
-        <FormItemUtil
+    <Container>
+      <BoxLogin>
+        <InputS
           name="login"
-          rules={[{ required: true, message: 'Por favor informe seu login!' }]}
-        >
-          <InputUtil
-            prefix={<UserOutlined className="site-form-item-icon" />}
-            placeholder="Login"
-          />
-        </FormItemUtil>
-        <FormItemUtil
+          placeholder="Login"
+          prefix={<FaRegUser size={30} />}
+          onChange={(e) =>
+            setDataLogin({ ...dataLogin, login: e.target.value })
+          }
+        />
+        <InputS
+          type="password"
           name="password"
-          rules={[{ required: true, message: 'Por favor informe sua senha!' }]}
-        >
-          <Input
-            prefix={<LockOutlined className="site-form-item-icon" />}
-            type="password"
-            placeholder="Senha"
-          />
-        </FormItemUtil>
-        <FormItemUtil>
-          <FormItem name="remember" valuePropName="checked" noStyle>
-            <Checkbox>Remember me</Checkbox>
-          </FormItem>
-
-          <a className="login-form-forgot" href="/forgot-password">
-            Esqueceu a senha
-          </a>
-        </FormItemUtil>
-
-        <FormItemUtil>
-          <FormButton
-            type="primary"
-            htmlType="submit"
-            className="login-form-button"
-          >
-            Logar
-          </FormButton>
-          Or <a href="/register">Registre-se!</a>
-        </FormItemUtil>
-      </FormContent>
-    </FormS>
+          placeholder="Senha"
+          prefix={<MdPassword size={30} />}
+          onChange={(e) =>
+            setDataLogin({ ...dataLogin, password: e.target.value })
+          }
+        />
+        <DivButtons>
+          <ButtonS loading={isLoading} icon={<MdLogin size={30} />} onClick={handleLogin}>Logar</ButtonS>
+        <Link style={{textDecoration: 'none', color: 'black'}} to='/forgot-password'>Esqueceu a senha?</Link>
+        </DivButtons>
+          <Link style={{textDecoration: 'none', color: 'black'}} to='/register'>Não tem uma conta ? Registre-se</Link>
+      </BoxLogin>
+      <BoxImg />
+    </Container>
   );
 };
 
